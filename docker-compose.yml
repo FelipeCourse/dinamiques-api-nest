@@ -1,0 +1,42 @@
+services:
+  api:
+    container_name: dinamiques-nest-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: felipedr7/dinamiques-nest-api:latest
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    networks:
+      - dinamiques-network
+
+  postgres:
+    container_name: dinamiques-nest-postgres
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - dinamiques-network
+
+networks:
+  dinamiques-network:
+    driver: bridge
+
+volumes:
+  pgdata:

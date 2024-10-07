@@ -1,0 +1,12 @@
+# dependencies
+node_modules
+
+# tests
+jest*
+coverage
+
+# misc
+.husky
+
+# dist
+dist

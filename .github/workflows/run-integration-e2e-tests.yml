@@ -1,0 +1,61 @@
+name: CI - integration and e2e tests
+
+on: [pull_request]
+
+jobs:
+  run-integration-and-e2e-tests:
+    name: Run integration and e2e tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: bitnami/postgresql
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: ${{ secrets.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DATABASE_NAME }}
+
+    env:
+      DATABASE_URL: '${{ secrets.DATABASE_PROTOCOL }}://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:5432/${{ secrets.DATABASE_NAME }}?schema=public'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate prisma client
+        run: npx prisma generate --schema ./src/shared/infrastructure/database/prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Run integration tests
+        run: pnpm run test:integration:ci
+        env:
+          DATABASE_IN_MEMORY: false
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Run e2e tests
+        run: pnpm run test:e2e:ci
+        env:
+          DATABASE_IN_MEMORY: false
+          DATABASE_URL: ${{ env.DATABASE_URL }}
