@@ -334,6 +334,12 @@ Para facilitar a inicialização do banco de dados antes da aplicação, foi est
 $ docker-compose up
 ```
 
+Se houver algum problema com alguma criação anterior do container do docker e não conseguir se conectar ao banco a ser criado, basta executar o comando abaixo, antes de executar o `docker-compose up`.
+
+```bash
+$ docker-compose down -v
+```
+
 #### Autenticação com usuário padrão
 
 Tanto se for utilizado o repositório em memória, quanto com o prisma, como a rota de criação de usuário é protegida com autenticação, foi criado um usuário padrão para que seja possível se autenticar e criar novos usuários ou acessar demais recursos. Segue abaixo dados do usuário para autenticação inicial.
